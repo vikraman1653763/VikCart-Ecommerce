@@ -33,7 +33,7 @@ const ProductCard = ({ product }) => {
           <p>(4)</p>
         </div>
         <div className="flex items-end justify-between mt-3">
-          <p className="md:text-xl text-base font-medium text-primary-dull">
+          <p className="md:text-xl text-base font-medium text-primary">
             {currency}
             {product.offerPrice}{" "}
             <span className="text-gray-500/60 md:text-sm text-xs line-through">
@@ -41,17 +41,17 @@ const ProductCard = ({ product }) => {
               {product.price}
             </span>
           </p>
-          <div className="text-primary-dull">
+          <div className="text-primary">
             {!cartItems[product._id]? (
               <button
-                className="flex items-center justify-center gap-1 bg-primary/10 border border-primary/40 md:w-[80px] w-[64px] h-[34px] rounded text-primary-dull cursor-pointer "
+                className="flex items-center justify-center gap-1 bg-primary/10 border border-primary/40 md:w-[80px] w-[64px] h-[34px] rounded text-primary cursor-pointer "
                 onClick={() => addToCart(product._id)}
               >
                 <img src={assets.cart_icon} alt="add icon" />
                 Add
               </button>
             ) : (
-              <div className="flex items-center justify-center gap-2 md:w-20 w-16 h-[34px] bg-primary/30 border border-primary/40 rounded select-none font-bold">
+              <div className="flex items-center justify-center gap-2 md:w-20 w-16 h-[34px] bg-primary/20 border border-primary/40 rounded select-none font-bold">
                 <button
                   onClick={() => removeFromCart(product._id)}
                   className="cursor-pointer text-md px-2 h-full"

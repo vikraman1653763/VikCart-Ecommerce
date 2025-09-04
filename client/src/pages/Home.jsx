@@ -2,6 +2,7 @@ import BestSeller from "@/component/BestSeller";
 import BottomBanner from "@/component/BottomBanner";
 import Categories from "@/component/Categories";
 import MainBanner from "@/component/MainBanner";
+import NewsLetter from "@/component/NewsLetter";
 import React from "react";
 
 const Home = () => {
@@ -11,6 +12,7 @@ const Home = () => {
       <Categories />
       <BestSeller />
       <BottomBanner />
+      <NewsLetter/>
     </div>
   );
 };

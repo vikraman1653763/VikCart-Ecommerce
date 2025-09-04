@@ -9,11 +9,12 @@ export const AppContextProvider = ({ children }) => {
   const currency = import.meta.env.VITE_CURRENCY;
 
   const navigate = useNavigate();
-  const [user, setUser] = useState(null);
+  const [user, setUser] = useState(true);
   const [isSeller, setIsSeller] = useState(false);
   const [showUserLogin, setShowUserLogin] = useState(false);
   const [products, setProducts] = useState([]);
   const [cartItems, setCartItems] = useState({});
+  const [searchQuery, setSearchQuery] = useState({});
 
   //fetch all products
   const fetchProducts = async () => {
@@ -32,27 +33,26 @@ export const AppContextProvider = ({ children }) => {
     toast.success("Added to Cart");
   };
 
-  //UPDATE  cart item quantity 
-  const updateCartItem = (itemId, quantity)=>{
-    let cartData = structuredClone(cartItems)
-    cartItems[itemId] = quantity
-    setCartItems(cartData)
-    toast.success("Cart Updated")
-  }
+  //UPDATE  cart item quantity
+  const updateCartItem = (itemId, quantity) => {
+    let cartData = structuredClone(cartItems);
+    cartData[itemId] = quantity;
+    setCartItems(cartData);
+    toast.success("Cart Updated");
+  };
 
   //remove product form cart
-  const removeFromCart = (itemId)=>{
-    let cartData = structuredClone(cartItems)
-    if(cartData[itemId]){
-      cartData[itemId]-=1
-      if(cartData[itemId] ===0){
-        delete cartData[itemId]
+  const removeFromCart = (itemId) => {
+    let cartData = structuredClone(cartItems);
+    if (cartData[itemId]) {
+      cartData[itemId] -= 1;
+      if (cartData[itemId] === 0) {
+        delete cartData[itemId];
       }
     }
-    toast.success("Removed From Cart")
-    setCartItems(cartData)
-  }
-
+    toast.success("Removed From Cart");
+    setCartItems(cartData);
+  };
 
   useEffect(() => {
     fetchProducts();
@@ -71,7 +71,9 @@ export const AppContextProvider = ({ children }) => {
     cartItems,
     addToCart,
     updateCartItem,
-    removeFromCart
+    removeFromCart,
+    searchQuery,
+    setSearchQuery,
   };
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
 };
