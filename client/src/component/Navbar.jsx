@@ -105,9 +105,9 @@ const Navbar = () => {
           All Products
         </NavLink>
         {user &&
-        <NavLink to="/" onClick={() => setOpen(false)}>My Orders</NavLink>
+        <NavLink to="/my-orders" onClick={() => setOpen(false)}>My Orders</NavLink>
     }
-    <NavLink to="/" onClick={() => setOpen(false)}>Contact</NavLink>
+    <NavLink to="/contact" onClick={() => setOpen(false)}>Contact</NavLink>
 {!user ? (
         <button onClick={()=>{setOpen(false)
             setShowUserLogin(true)
