@@ -18,5 +18,5 @@ const authSeller = async (req,res,next)=>{
       }
     };
     
-    export default authUser;
+    export default authSeller;
     
