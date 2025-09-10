@@ -1,5 +1,8 @@
 import { assets, categories } from "@/assets/assets";
+import { useAppContext } from "@/context/AppContext";
+import { API_PATHS } from "@/utils/api";
 import React, { useState } from "react";
+import toast from "react-hot-toast";
 
 const AddProduct = () => {
   const [files, setFiles] = useState([]);
@@ -9,8 +12,38 @@ const AddProduct = () => {
   const [price, setPrice] = useState("");
   const [offerPrice, setOfferPrice] = useState("");
 
+  const{axios} = useAppContext()
+
   const onSumbitHandler = async (e) => {
-    e.preventDefault();
+    try {
+      e.preventDefault();
+      
+      const productData ={
+        name, description :description.split('\n'),category,price,offerPrice
+      }
+      
+      const formData = new FormData()
+      formData.append('productData',JSON.stringify(productData))
+      for(let i=0;i<files.length;i++){
+        formData.append('images',files[i])
+      }
+      const{data} = await axios.post(API_PATHS.PRODUCT.ADD,formData)
+      if(data.success){
+        toast.success(data.message)
+        setName('')
+        setDescription('')
+        setCategory('')
+        setPrice('')
+        setOfferPrice('')
+        setFiles([])
+      }else{
+        toast.error(error?.response?.data?.message ||"Can't add product right now")
+      }
+
+    } catch (error) {
+              toast.error(error?.response?.data?.message ||"Can't add product right now")
+
+    }
   };
   return (
     <div className="no-scrollbar flex-1 h-[95vh] overflow-y-scroll flex flex-col justify-between">

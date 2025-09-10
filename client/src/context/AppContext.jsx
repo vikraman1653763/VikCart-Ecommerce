@@ -35,9 +35,32 @@ export const AppContextProvider = ({ children }) => {
     }
   };
 
+  // fetch user status
+  const fetchUser = async () => {
+    try {
+      const { data } = await axios.get(API_PATHS.USER.IS_AUTH);
+      if (data.success) {
+        setUser(data.user)
+        setCartItems(data.user.cartItems)
+      }
+
+    } catch (error) {
+      setUser(null)
+    }
+  };
+
   //fetch all products
   const fetchProducts = async () => {
-    setProducts(dummyProducts);
+    try {
+      const { data } = await axios.get(API_PATHS.PRODUCT.LIST);
+      if (data.success) {
+        setProducts(data.products);
+      } else {
+        toast.error(error.response?.data?.message || "Logout failed");
+      }
+    } catch (error) {
+      toast.error(error.response?.data?.message || "Logout failed");
+    }
   };
 
   //Add product to cart
@@ -92,6 +115,7 @@ export const AppContextProvider = ({ children }) => {
     return Math.floor(totalAmount * 100) / 100;
   };
   useEffect(() => {
+    fetchUser()
     fetchSeller();
     fetchProducts();
   }, []);
@@ -115,6 +139,7 @@ export const AppContextProvider = ({ children }) => {
     getCartAmount,
     getCartCount,
     axios,
+    fetchProducts
   };
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
 };
