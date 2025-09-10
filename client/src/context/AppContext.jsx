@@ -1,20 +1,39 @@
 import { dummyProducts } from "@/assets/assets";
+import { API_PATHS, BASE_URL } from "@/utils/api";
+import axios from "axios";
 import { createContext, useContext, useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
 
+axios.defaults.withCredentials = true;
+axios.defaults.baseURL = BASE_URL;
 export const AppContext = createContext();
 
 export const AppContextProvider = ({ children }) => {
   const currency = import.meta.env.VITE_CURRENCY;
 
   const navigate = useNavigate();
-  const [user, setUser] = useState(true);
-  const [isSeller, setIsSeller] = useState(true);
+  const [user, setUser] = useState(null);
+  const [isSeller, setIsSeller] = useState(false);
+
   const [showUserLogin, setShowUserLogin] = useState(false);
   const [products, setProducts] = useState([]);
   const [cartItems, setCartItems] = useState({});
   const [searchQuery, setSearchQuery] = useState({});
+
+  // fetch seller status
+  const fetchSeller = async () => {
+    try {
+      const { data } = await axios.get(API_PATHS.SELLER.IS_AUTH);
+      if (data.success) {
+        setIsSeller(true);
+      } else {
+        setIsSeller(false);
+      }
+    } catch (error) {
+      setIsSeller(false);
+    }
+  };
 
   //fetch all products
   const fetchProducts = async () => {
@@ -73,6 +92,7 @@ export const AppContextProvider = ({ children }) => {
     return Math.floor(totalAmount * 100) / 100;
   };
   useEffect(() => {
+    fetchSeller();
     fetchProducts();
   }, []);
 
@@ -94,6 +114,7 @@ export const AppContextProvider = ({ children }) => {
     setSearchQuery,
     getCartAmount,
     getCartCount,
+    axios,
   };
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
 };
