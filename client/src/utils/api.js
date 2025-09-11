@@ -32,6 +32,7 @@ export const API_PATHS = {
 
   ORDER: {
     PLACE_COD: "/api/order/cod",
+    PLACE_STRIPE: "/api/order/stripe",
     USER_ORDERS: "/api/order/user",
     ALL_ORDERS: "/api/order/cod", // seller view
   },

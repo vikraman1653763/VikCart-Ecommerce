@@ -19,18 +19,28 @@ const BottomBanner = () => {
           <h1 className=" text-2xl md:text-3xl font-semibold text-primary mb-6">
             Why We Are the Best?
           </h1>
-          {features.map((f, i) => (
-            <div key={i}>
-              <img src={f.icon} alt={f.title} className="md:w-11 w-9" />
-              <div>
-
-              <h3 className="text-lg md:text-xl font-semibold">{f.title}</h3>
-              <p className="text-gray-500/70 text-xs md:text-sm">
-                {f.description}
-              </p>
+          {features.map((f, i) => {
+            const Icon = f.icon;
+            return (
+              <div key={i}>
+                {Icon ? (
+                  <Icon
+                    size={36}
+                    className="shrink-0 text-primary/80"
+                    aria-hidden="true"
+                  />
+                ) : null}{" "}
+                <div>
+                  <h3 className="text-lg md:text-xl font-semibold">
+                    {f.title}
+                  </h3>
+                  <p className="text-gray-500/70 text-xs md:text-sm">
+                    {f.description}
+                  </p>
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
     </div>

@@ -1,13 +1,27 @@
 import { assets, dummyOrders } from "@/assets/assets";
 import { useAppContext } from "@/context/AppContext";
+import { API_PATHS } from "@/utils/api";
 import React, { useEffect, useState } from "react";
+import toast from "react-hot-toast";
+import { GiBasket } from "react-icons/gi";
 
 const Orders = () => {
-  const { currency } = useAppContext();
+  const { currency ,axios } = useAppContext();
   const [orders, setOrders] = useState([]);
 
   const fetchOrders = async () => {
-    setOrders(dummyOrders);
+    try {
+      const {data} = await axios.get(API_PATHS.ORDER.ALL_ORDERS)
+      if(data.success){
+        setOrders(data.orders)
+      }else{
+        toast.error(data.message || "Failed to fetch orders");
+      }
+    } catch (error) {
+      toast.error(
+        error.response?.data?.message || error.message || "Something went wrong"
+      );
+    }
   };
   useEffect(() => {
     fetchOrders();
@@ -22,11 +36,8 @@ const Orders = () => {
             className="flex flex-col md:items-center md:flex-row justify-between  gap-5 p-5 max-w-4xl rounded-md border border-gray-300 "
           >
             <div className="flex gap-5 max-w-80">
-              <img
-                className="w-12 h-12 object-cover "
-                src={assets.box_icon}
-                alt="boxIcon"
-              />
+              <GiBasket size={50} className="text-primary bg-primary/10 border border-primary/30 rounded-sm p-1"/>
+             
               <div className="">
                 {order.items.map((item, index) => (
                   <div key={index} className="flex flex-col">

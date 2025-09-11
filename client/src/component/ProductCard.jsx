@@ -1,6 +1,8 @@
 import { assets } from "@/assets/assets";
 import { useAppContext } from "@/context/AppContext";
 import React, { useState } from "react";
+import { GrStar } from "react-icons/gr";
+import { HiOutlineShoppingCart } from "react-icons/hi2";
 
 const ProductCard = ({ product }) => {
   const { currency, addToCart, removeFromCart, cartItems, navigate } =
@@ -32,15 +34,19 @@ const ProductCard = ({ product }) => {
             {Array(5)
               .fill("")
               .map((_, i) => (
-                <img
+                <GrStar
                   key={i}
-                  className="md:w-3.5 w-3"
-                  src={i < 4 ? assets.star_icon : assets.star_dull_icon}
-                  alt="stars"
+                  size={18}
+                  className={
+                    i < Math.round(Number(product?.rating || 0))
+                      ? "text-primary"
+                      : "text-primary/30"
+                  }
                 />
               ))}
-            <p>(4)</p>
+            <p>({product.rating})</p>
           </div>
+
           <div className="flex items-end justify-between mt-3">
             <p className="md:text-xl text-base font-medium text-primary">
               {currency}
@@ -56,7 +62,7 @@ const ProductCard = ({ product }) => {
                   className="flex items-center justify-center gap-1 bg-primary/10 border border-primary/40 md:w-[80px] w-[64px] h-[34px] rounded text-primary cursor-pointer "
                   onClick={(e) => addToCart(product._id)}
                 >
-                  <img src={assets.cart_icon} alt="add icon" />
+                  <HiOutlineShoppingCart size={17} alt='add icon'/>
                   Add
                 </button>
               ) : (

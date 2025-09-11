@@ -1,17 +1,31 @@
-import { dummyOrders } from "@/assets/assets";
 import { useAppContext } from "@/context/AppContext";
+import { API_PATHS } from "@/utils/api";
 import React, { useEffect, useState } from "react";
+import toast from "react-hot-toast";
 
 const MyOrders = () => {
   const [myOrders, setMyOrders] = useState([]);
-  const { currency } = useAppContext();
+  const { axios, user, currency } = useAppContext();
 
   const fetchMyOrders = async () => {
-    setMyOrders(dummyOrders);
+    try {
+      const { data } = await axios.get(API_PATHS.ORDER.USER_ORDERS);
+      if (data.success) {
+        setMyOrders(data.orders);
+      } else {
+        toast.error(data.message || "Failed to fetch addresses");
+      }
+    } catch (error) {
+      toast.error(
+        error.response?.data?.message || error.message || "Something went wrong"
+      );
+    }
   };
   useEffect(() => {
-    fetchMyOrders();
-  }, []);
+    if (user) {
+      fetchMyOrders();
+    }
+  }, [user]);
   return (
     <div className=" mt-16 pb-16">
       <div className=" flex flex-col items-end w-max mb-8">
@@ -24,13 +38,13 @@ const MyOrders = () => {
           className="border border-gray-300 rounded-lg mb-10 p-4 py-5 max-w-4xl"
         >
           <p className="flex justify-between md:items-center text-gray-400 md:font-medium max-md:flex-col break-words">
-  <span className="break-all">OrderId: {order._id}</span>
-  <span>Payment: {order.paymentType}</span>
-  <span>
-    Total Amount: {currency}
-    {order.amount}
-  </span>
-</p>
+            <span className="break-all">OrderId: {order._id}</span>
+            <span>Payment: {order.paymentType}</span>
+            <span>
+              Total Amount: {currency}
+              {order.amount}
+            </span>
+          </p>
 
           {order.items.map((item, index) => (
             <div

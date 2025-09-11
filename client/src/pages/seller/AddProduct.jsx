@@ -11,38 +11,50 @@ const AddProduct = () => {
   const [category, setCategory] = useState("");
   const [price, setPrice] = useState("");
   const [offerPrice, setOfferPrice] = useState("");
-
-  const{axios} = useAppContext()
+  const [rating, setRating] = useState("4");
+  const { axios } = useAppContext();
 
   const onSumbitHandler = async (e) => {
     try {
       e.preventDefault();
-      
-      const productData ={
-        name, description :description.split('\n'),category,price,offerPrice
+      // basic client-side validation
+      const r = Number(rating);
+      if (!Number.isFinite(r) || r < 1 || r > 5) {
+        return toast.error("Rating must be between 1 and 5");
       }
-      
-      const formData = new FormData()
-      formData.append('productData',JSON.stringify(productData))
-      for(let i=0;i<files.length;i++){
-        formData.append('images',files[i])
-      }
-      const{data} = await axios.post(API_PATHS.PRODUCT.ADD,formData)
-      if(data.success){
-        toast.success(data.message)
-        setName('')
-        setDescription('')
-        setCategory('')
-        setPrice('')
-        setOfferPrice('')
-        setFiles([])
-      }else{
-        toast.error(error?.response?.data?.message ||"Can't add product right now")
-      }
+      const productData = {
+        name,
+        description: description.split("\n"),
+        category,
+        price,
+        offerPrice,
+        rating: Math.round(r)
+      };
 
+      const formData = new FormData();
+      formData.append("productData", JSON.stringify(productData));
+      for (let i = 0; i < files.length; i++) {
+        formData.append("images", files[i]);
+      }
+      const { data } = await axios.post(API_PATHS.PRODUCT.ADD, formData);
+      if (data.success) {
+        toast.success(data.message);
+        setName("");
+        setDescription("");
+        setCategory("");
+        setPrice("");
+        setOfferPrice("");
+        setFiles([]);
+        setRating('4')
+      } else {
+        toast.error(
+          error?.response?.data?.message || "Can't add product right now"
+        );
+      }
     } catch (error) {
-              toast.error(error?.response?.data?.message ||"Can't add product right now")
-
+      toast.error(
+        error?.response?.data?.message || "Can't add product right now"
+      );
     }
   };
   return (
@@ -114,7 +126,9 @@ const AddProduct = () => {
             placeholder="Type here"
           ></textarea>
         </div>
-        <div className="w-full flex flex-col gap-1">
+        <div className=" flex items-center gap-5 flex-wrap">
+
+        <div className="w-1/2 flex flex-col gap-1">
           <label className="text-base font-medium" htmlFor="category">
             Category
           </label>
@@ -131,7 +145,27 @@ const AddProduct = () => {
               </option>
             ))}
           </select>
+          
         </div>
+         <div className="flex-1 flex flex-col gap-1 w-32">
+             <label className="text-base font-medium" htmlFor="rating">
+               Rating (1–5)
+             </label>
+             <input
+               onChange={(e) => setRating(e.target.value)}
+               value={rating}
+               id="rating"
+               type="number"
+               min={1}
+               max={5}
+               step={1}
+               placeholder="4"
+               className="outline-none md:py-2.5 py-2 px-3 rounded border border-gray-500/40"
+               required
+             />
+           </div>
+        </div>
+
         <div className="flex items-center gap-5 flex-wrap">
           <div className="flex-1 flex flex-col gap-1 w-32">
             <label className="text-base font-medium" htmlFor="product-price">
@@ -161,6 +195,7 @@ const AddProduct = () => {
               required
             />
           </div>
+          
         </div>
         <button className="cursor-pointer px-8 py-2.5 bg-primary text-white font-medium rounded">
           ADD

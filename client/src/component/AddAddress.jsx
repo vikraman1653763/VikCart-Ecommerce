@@ -1,5 +1,8 @@
 import { assets } from "@/assets/assets";
-import React, { useState } from "react";
+import { useAppContext } from "@/context/AppContext";
+import { API_PATHS } from "@/utils/api";
+import React, { useEffect, useState } from "react";
+import toast from "react-hot-toast";
 
 const InputFiled = ({ type, placeholder, name, handleChange, address }) => (
   <input
@@ -14,6 +17,8 @@ const InputFiled = ({ type, placeholder, name, handleChange, address }) => (
 );
 
 const AddAddress = () => {
+  const { axios, user, navigate } = useAppContext()
+
   const [address, setAddresses] = useState({
     firstName: "",
     lastName: "",
@@ -35,7 +40,23 @@ const AddAddress = () => {
   }
   const onSubmitHandler = async (e) => {
     e.preventDefault();
+    try {
+      const { data } = await axios.post(API_PATHS.ADDRESS.ADD,{address})
+      if(data.success){
+        toast.success(data.message)
+        navigate("/cart")
+      }else{
+        toast.error(error.message)
+      }
+     } catch (error) {
+        toast.error(error.message)
+    }
   };
+  useEffect(()=>{
+    if(!user){
+      navigate('/cart')
+    }
+  },[])
   return (
     <div className="mt-16 pb-16">
       <p className="text-2xl md:text-3xl text-gray-500">

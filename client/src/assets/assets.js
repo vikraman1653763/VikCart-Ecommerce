@@ -70,6 +70,12 @@ import quinoa_image from "./quinoa_image.png";
 import brown_rice_image from "./brown_rice_image.png";
 import barley_image from "./barley_image.png";
 
+import { FaTruckArrowRight } from "react-icons/fa6";
+import { SiCodefresh } from "react-icons/si";
+import { HiCurrencyRupee } from "react-icons/hi2";
+import { GiHeartWings } from "react-icons/gi";
+
+
 export const assets = {
   logo,
   search_icon,
@@ -179,22 +185,22 @@ export const footerLinks = [
 
 export const features = [
   {
-    icon: delivery_truck_icon,
+    icon: FaTruckArrowRight,
     title: "Fastest Delivery",
     description: "Groceries delivered in under 30 minutes.",
   },
   {
-    icon: leaf_icon,
+    icon: SiCodefresh,
     title: "Freshness Guaranteed",
     description: "Fresh produce straight from the source.",
   },
   {
-    icon: coin_icon,
+    icon: HiCurrencyRupee,
     title: "Affordable Prices",
     description: "Quality groceries at unbeatable prices.",
   },
   {
-    icon: trust_icon,
+    icon: GiHeartWings,
     title: "Trusted by Thousands",
     description: "Loved by 10,000+ happy customers.",
   },
