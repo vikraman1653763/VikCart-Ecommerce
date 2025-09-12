@@ -28,15 +28,16 @@ const Cart = () => {
   const [paymentOption, setPaymentOption] = useState("COD");
 
   const getCart = () => {
-  const tempArray = Object.entries(cartItems || {}).map(([id, qty]) => {
-    const p = products.find((item) => item._id === id);
-    if (!p) return null; // product may not exist anymore
-    return { ...p, quantity: Number(qty) || 0 }; // don't mutate original
-  }).filter(Boolean);
+    const tempArray = Object.entries(cartItems || {})
+      .map(([id, qty]) => {
+        const p = products.find((item) => item._id === id);
+        if (!p) return null; // product may not exist anymore
+        return { ...p, quantity: Number(qty) || 0 }; // don't mutate original
+      })
+      .filter(Boolean);
 
-  setCartArray(tempArray);
-};
-
+    setCartArray(tempArray);
+  };
 
   const getUserAddress = async () => {
     try {
@@ -55,19 +56,19 @@ const Cart = () => {
       );
     }
   };
+
   const placeOrder = async () => {
     try {
-      if(!user){
-        setShowUserLogin(true) 
-        return toast.error("Please login to place an order")
+      if (!user) {
+        setShowUserLogin(true);
+        return toast.error("Please login to place an order");
       }
       if (!selectedAddress) {
         return toast.error("Please select an address");
       }
-      // COD  order
+      // COD order
       if (paymentOption === "COD") {
         const { data } = await axios.post(API_PATHS.ORDER.PLACE_COD, {
-          
           items: cartArray.map((item) => ({
             product: item._id,
             quantity: item.quantity,
@@ -81,8 +82,8 @@ const Cart = () => {
         } else {
           toast.error(data.message || "Could not place order");
         }
-      }else{
-        // place order with stripe
+      } else {
+        // Stripe order
         const { data } = await axios.post(API_PATHS.ORDER.PLACE_STRIPE, {
           userId: user._id,
           items: cartArray.map((item) => ({
@@ -92,8 +93,7 @@ const Cart = () => {
           address: selectedAddress._id,
         });
         if (data.success) {
-          window.location.replace(data.url)
-    
+          window.location.replace(data.url);
         } else {
           toast.error(data.message || "Could not place order");
         }
@@ -116,6 +116,12 @@ const Cart = () => {
       getUserAddress();
     }
   }, [user]);
+
+  // ===== Derived totals for UI (match backend rules) =====
+  const subtotal = getCartAmount(); // rupees
+  const deliveryFee = subtotal > 0 && subtotal < 100 ? 50 : 0; // ₹50 if subtotal < ₹100
+  const tax = Math.round(subtotal * 0.02); // 2% on subtotal (not on delivery)
+  const grandTotal = subtotal + tax + deliveryFee;
 
   return products.length > 0 && cartItems ? (
     <div className="flex flex-col md:flex-row mt-16">
@@ -148,7 +154,13 @@ const Cart = () => {
               >
                 <img
                   className="max-w-full h-full object-cover"
-  src={Array.isArray(product.image) ? (typeof product.image[0] === 'object' ? product.image[0]?.url : product.image[0]) : product.image}
+                  src={
+                    Array.isArray(product.image)
+                      ? typeof product.image[0] === "object"
+                        ? product.image[0]?.url
+                        : product.image[0]
+                      : product.image
+                  }
                   alt={product.name}
                 />
               </div>
@@ -161,17 +173,22 @@ const Cart = () => {
                   <div className="flex items-center">
                     <p>Qty:</p>
                     <select
-  onChange={(e) => updateCartItem(product._id, Number(e.target.value))}
-  value={cartItems?.[product._id] ?? product.quantity ?? 1}
-  className="outline-none"
->
-  {Array(Math.max(9, cartItems?.[product._id] ?? product.quantity ?? 1))
-    .fill(0)
-    .map((_, index) => (
-      <option key={index} value={index + 1}>{index + 1}</option>
-    ))}
-</select>
-
+                      onChange={(e) =>
+                        updateCartItem(product._id, Number(e.target.value))
+                      }
+                      value={cartItems?.[product._id] ?? product.quantity ?? 1}
+                      className="outline-none"
+                    >
+                      {Array(
+                        Math.max(9, cartItems?.[product._id] ?? product.quantity ?? 1)
+                      )
+                        .fill(0)
+                        .map((_, index) => (
+                          <option key={index} value={index + 1}>
+                            {index + 1}
+                          </option>
+                        ))}
+                    </select>
                   </div>
                 </div>
               </div>
@@ -184,10 +201,8 @@ const Cart = () => {
               onClick={() => removeFromCart(product._id)}
               className="cursor-pointer mx-auto "
             >
-              <CgCloseO alt="remove"
-                className=" inline-block w-6 h-6 text-red-400"
-                onClick={() => removeFromCart()}/>
-              
+              {/* Single handler; removed inner onClick to avoid passing no id */}
+              <CgCloseO alt="remove" className=" inline-block w-6 h-6 text-red-400" />
             </button>
           </div>
         ))}
@@ -269,25 +284,30 @@ const Cart = () => {
             <span>Price</span>
             <span>
               {currency}
-              {getCartAmount()}
+              {subtotal}
             </span>
           </p>
+
           <p className="flex justify-between">
-            <span>Shipping Fee</span>
-            <span className="text-green-600">Free</span>
+            <span>Delivery</span>
+            <span className={deliveryFee === 0 ? "text-green-600" : ""}>
+              {deliveryFee === 0 ? "Free" : `${currency}${deliveryFee}`}
+            </span>
           </p>
+
           <p className="flex justify-between">
             <span>Tax (2%)</span>
             <span>
               {currency}
-              {(getCartAmount() * 2) / 100}
+              {tax}
             </span>
           </p>
+
           <p className="flex justify-between text-lg font-medium mt-3">
             <span>Total Amount:</span>
             <span>
               {currency}
-              {getCartAmount() + (getCartAmount() * 2) / 100}
+              {grandTotal}
             </span>
           </p>
         </div>

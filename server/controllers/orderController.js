@@ -3,12 +3,13 @@ import Order from "../models/Order.js";
 import Product from "../models/Product.js";
 import Stripe from "stripe";
 import User from "../models/User.js";
+
 // COD ORDER
 export const placeOrderCOD = async (req, res) => {
   try {
-
     const userId = req.userId;
     const { items, address } = req.body;
+
     // Basic presence checks
     if (!userId) {
       return res
@@ -46,8 +47,8 @@ export const placeOrderCOD = async (req, res) => {
       }
     }
 
-    // Compute amount
- let subtotal = 0;
+    // Compute subtotal (pre-tax, in rupees)
+    let subtotal = 0;
     for (const it of items) {
       const product = await Product.findById(it.product);
       if (!product) {
@@ -68,7 +69,13 @@ export const placeOrderCOD = async (req, res) => {
     // Final amount (₹)
     const amount = subtotal + tax + deliveryFee;
 
-    await Order.create({ userId, items, amount, address, paymentType: "COD" });
+    await Order.create({
+      userId,
+      items,
+      amount,
+      address,
+      paymentType: "COD",
+    });
 
     return res
       .status(200)
@@ -78,7 +85,7 @@ export const placeOrderCOD = async (req, res) => {
   }
 };
 
-//STRIPE ORDER
+// STRIPE ORDER
 export const placeOrderStripe = async (req, res) => {
   try {
     const { userId, items, address } = req.body;
@@ -122,10 +129,11 @@ export const placeOrderStripe = async (req, res) => {
         });
       }
     }
+
     let productData = [];
     let subtotalPaise = 0;
 
-    // Compute amount
+    // Build productData and subtotal (in paise)
     for (const it of items) {
       const product = await Product.findById(it.product);
       if (!product) {
@@ -144,7 +152,7 @@ export const placeOrderStripe = async (req, res) => {
       subtotalPaise += unitPaise * qty;
     }
 
- // Delivery fee if subtotal < ₹100
+    // Delivery fee if subtotal < ₹100
     const needsDeliveryFee = subtotalPaise > 0 && subtotalPaise < 100 * 100;
     const deliveryFeePaise = needsDeliveryFee ? 50 * 100 : 0;
 
@@ -155,6 +163,7 @@ export const placeOrderStripe = async (req, res) => {
     const amountPaise = subtotalPaise + taxPaise + deliveryFeePaise;
     const amountRupees = amountPaise / 100;
 
+    // Save order
     const order = await Order.create({
       userId,
       items,
@@ -169,7 +178,7 @@ export const placeOrderStripe = async (req, res) => {
     // create line items for stripe
     const line_items = productData.map((p) => ({
       price_data: {
-        currency: "inr", //  INR
+        currency: "inr",
         product_data: { name: p.name },
         unit_amount: p.unitPaise, // paise
       },
@@ -181,23 +190,35 @@ export const placeOrderStripe = async (req, res) => {
         price_data: {
           currency: "inr",
           product_data: { name: "Tax (2%)" },
-          unit_amount: taxPaise, // whole tax as a single line
+          unit_amount: taxPaise,
         },
         quantity: 1,
       });
     }
 
-    //create session
+    if (deliveryFeePaise > 0) {
+      line_items.push({
+        price_data: {
+          currency: "inr",
+          product_data: { name: "Delivery Charge" },
+          unit_amount: deliveryFeePaise,
+        },
+        quantity: 1,
+      });
+    }
+
+    // create session
     const session = await stripeInstance.checkout.sessions.create({
       mode: "payment",
       line_items,
       success_url: `${baseUrl}/loader?next=my-orders`,
-      cancel_url: `${origin}/cart`,
+      cancel_url: `${baseUrl}/cart`,
       metadata: {
         orderId: order._id.toString(),
         userId,
       },
     });
+
     return res.status(200).json({ success: true, url: session.url });
   } catch (error) {
     return res.status(500).json({ success: false, message: error.message });
@@ -208,11 +229,20 @@ export const placeOrderStripe = async (req, res) => {
 export const stripeWebhooks = async (req, res) => {
   const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
   const sig = req.headers["stripe-signature"];
-  console.log("Webhook hit. Has signature:", !!sig, "Content-Type:", req.headers["content-type"]);
+  console.log(
+    "Webhook hit. Has signature:",
+    !!sig,
+    "Content-Type:",
+    req.headers["content-type"]
+  );
 
   let event;
   try {
-    event = stripe.webhooks.constructEvent(req.body, sig, process.env.STRIPE_WEBHOOK_SECRET);
+    event = stripe.webhooks.constructEvent(
+      req.body,
+      sig,
+      process.env.STRIPE_WEBHOOK_SECRET
+    );
   } catch (err) {
     console.error("constructEvent failed:", err.message);
     // Return 400 so Stripe retries, but now you can see the exact reason
@@ -227,24 +257,34 @@ export const stripeWebhooks = async (req, res) => {
         const session = event.data.object;
         console.log("session.metadata:", session.metadata);
         const { orderId, userId } = session.metadata || {};
-        if (orderId) await Order.findByIdAndUpdate(orderId, { isPaid: true /*, status: "Paid"*/ });
+        if (orderId)
+          await Order.findByIdAndUpdate(orderId, { isPaid: true /*, status: "Paid"*/ });
         if (userId) await User.findByIdAndUpdate(userId, { cartItems: {} });
         break;
       }
       case "payment_intent.succeeded": {
         const pi = event.data.object;
-        const sessions = await stripe.checkout.sessions.list({ payment_intent: pi.id, limit: 1 });
+        const sessions = await stripe.checkout.sessions.list({
+          payment_intent: pi.id,
+          limit: 1,
+        });
         const sess = sessions.data[0];
         console.log("pi → session.metadata:", sess?.metadata);
-        if (sess?.metadata?.orderId) await Order.findByIdAndUpdate(sess.metadata.orderId, { isPaid: true });
-        if (sess?.metadata?.userId) await User.findByIdAndUpdate(sess.metadata.userId, { cartItems: {} });
+        if (sess?.metadata?.orderId)
+          await Order.findByIdAndUpdate(sess.metadata.orderId, { isPaid: true });
+        if (sess?.metadata?.userId)
+          await User.findByIdAndUpdate(sess.metadata.userId, { cartItems: {} });
         break;
       }
       case "payment_intent.payment_failed": {
         const pi = event.data.object;
-        const sessions = await stripe.checkout.sessions.list({ payment_intent: pi.id, limit: 1 });
+        const sessions = await stripe.checkout.sessions.list({
+          payment_intent: pi.id,
+          limit: 1,
+        });
         const sess = sessions.data[0];
-        if (sess?.metadata?.orderId) await Order.findByIdAndDelete(sess.metadata.orderId);
+        if (sess?.metadata?.orderId)
+          await Order.findByIdAndDelete(sess.metadata.orderId);
         break;
       }
       default:
@@ -258,8 +298,6 @@ export const stripeWebhooks = async (req, res) => {
     return res.json({ received: true });
   }
 };
-
-
 
 export const getUserOrders = async (req, res) => {
   try {
@@ -294,12 +332,14 @@ export const getAllOrders = async (req, res) => {
   }
 };
 
-
 export const toggleDelivered = async (req, res) => {
   try {
     const { id } = req.params;
     const order = await Order.findById(id);
-    if (!order) return res.status(404).json({ success: false, message: "Order not found" });
+    if (!order)
+      return res
+        .status(404)
+        .json({ success: false, message: "Order not found" });
 
     order.isDelivered = !order.isDelivered;
     order.deliveredAt = order.isDelivered ? new Date() : undefined;
@@ -318,7 +358,10 @@ export const deleteOrderById = async (req, res) => {
   try {
     const { id } = req.params;
     const del = await Order.findByIdAndDelete(id);
-    if (!del) return res.status(404).json({ success: false, message: "Order not found" });
+    if (!del)
+      return res
+        .status(404)
+        .json({ success: false, message: "Order not found" });
     return res.json({ success: true, message: "Order deleted" });
   } catch (e) {
     return res.status(500).json({ success: false, message: e.message });
