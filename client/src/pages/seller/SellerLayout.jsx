@@ -6,7 +6,7 @@ import toast from "react-hot-toast";
 import { Link, NavLink, Outlet } from "react-router-dom";
 
 const SellerLayout = () => {
-  const {setIsSeller,axios ,navigate} = useAppContext();
+  const {setIsSeller,axios ,navigate,authLoading } = useAppContext();
 
   const sidebarLinks = [
     { name: "Add Product", path: "/seller", icon: assets.add_icon },
@@ -32,6 +32,15 @@ const SellerLayout = () => {
               toast.error(error.response?.data?.message ||'Logout failed')
     }
   };
+  
+  if (authLoading) {
+    return (
+       <div className="flex justify-center items-center h-screen">
+      <div className="animate-spin rounded-full h-24 w-24 border-4 border-gray-300 border-t-primary"></div>
+    </div>
+    )
+  }
+
   return (
     <>
       <div className="flex items-center justify-between px-4 md:px-8 border-b border-gray-300 py-3 bg-white  ">

@@ -282,3 +282,34 @@ export const getAllOrders = async (req, res) => {
     return res.status(500).json({ success: false, message: error.message });
   }
 };
+
+
+export const toggleDelivered = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const order = await Order.findById(id);
+    if (!order) return res.status(404).json({ success: false, message: "Order not found" });
+
+    order.isDelivered = !order.isDelivered;
+    order.deliveredAt = order.isDelivered ? new Date() : undefined;
+    await order.save();
+
+    // return fresh populated order for UI
+    const full = await Order.findById(id).populate("items.product address");
+    return res.json({ success: true, order: full });
+  } catch (e) {
+    return res.status(500).json({ success: false, message: e.message });
+  }
+};
+
+// NEW – delete order
+export const deleteOrderById = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const del = await Order.findByIdAndDelete(id);
+    if (!del) return res.status(404).json({ success: false, message: "Order not found" });
+    return res.json({ success: true, message: "Order deleted" });
+  } catch (e) {
+    return res.status(500).json({ success: false, message: e.message });
+  }
+};

@@ -3,6 +3,7 @@ import { useAppContext } from "@/context/AppContext";
 import { API_PATHS } from "@/utils/api";
 import React, { useEffect, useState } from "react";
 import toast from "react-hot-toast";
+import { CgCloseO } from "react-icons/cg";
 
 const Cart = () => {
   const {
@@ -27,14 +28,16 @@ const Cart = () => {
   const [paymentOption, setPaymentOption] = useState("COD");
 
   const getCart = () => {
-    let tempArray = [];
-    for (const key in cartItems) {
-      const product = products.find((item) => item._id === key);
-      product.quantity = cartItems[key];
-      tempArray.push(product);
-    }
-    setCartArray(tempArray);
-  };
+  const tempArray = Object.entries(cartItems || {}).map(([id, qty]) => {
+    const p = products.find((item) => item._id === id);
+    if (!p) return null; // product may not exist anymore
+    return { ...p, quantity: Number(qty) || 0 }; // don't mutate original
+  }).filter(Boolean);
+
+  setCartArray(tempArray);
+};
+
+
   const getUserAddress = async () => {
     try {
       const { data } = await axios.get(API_PATHS.ADDRESS.GET);
@@ -145,7 +148,7 @@ const Cart = () => {
               >
                 <img
                   className="max-w-full h-full object-cover"
-                  src={product.image[0]}
+  src={Array.isArray(product.image) ? (typeof product.image[0] === 'object' ? product.image[0]?.url : product.image[0]) : product.image}
                   alt={product.name}
                 />
               </div>
@@ -158,22 +161,17 @@ const Cart = () => {
                   <div className="flex items-center">
                     <p>Qty:</p>
                     <select
-                      onChange={(e) =>
-                        updateCartItem(product._id, Number(e.target.value))
-                      }
-                      value={cartItems[product._id]}
-                      className="outline-none"
-                    >
-                      {Array(
-                        cartItems[product._id] > 9 ? cartItems[product._id] : 9
-                      )
-                        .fill("")
-                        .map((_, index) => (
-                          <option key={index} value={index + 1}>
-                            {index + 1}
-                          </option>
-                        ))}
-                    </select>
+  onChange={(e) => updateCartItem(product._id, Number(e.target.value))}
+  value={cartItems?.[product._id] ?? product.quantity ?? 1}
+  className="outline-none"
+>
+  {Array(Math.max(9, cartItems?.[product._id] ?? product.quantity ?? 1))
+    .fill(0)
+    .map((_, index) => (
+      <option key={index} value={index + 1}>{index + 1}</option>
+    ))}
+</select>
+
                   </div>
                 </div>
               </div>
@@ -184,14 +182,12 @@ const Cart = () => {
             </p>
             <button
               onClick={() => removeFromCart(product._id)}
-              className="cursor-pointer mx-auto"
+              className="cursor-pointer mx-auto "
             >
-              <img
-                src={assets.remove_icon}
-                alt="remove"
-                className=" inline-block w-6 h-6"
-                onClick={() => removeFromCart()}
-              />
+              <CgCloseO alt="remove"
+                className=" inline-block w-6 h-6 text-red-400"
+                onClick={() => removeFromCart()}/>
+              
             </button>
           </div>
         ))}

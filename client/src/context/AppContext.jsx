@@ -20,6 +20,7 @@ export const AppContextProvider = ({ children }) => {
   const [products, setProducts] = useState([]);
   const [cartItems, setCartItems] = useState({});
   const [searchQuery, setSearchQuery] = useState({});
+  const [authLoading, setAuthLoading] = useState(true); // 🔧 NEW
 
   const isSyncingCartRef = useRef(false);
 
@@ -92,8 +93,65 @@ export const AppContextProvider = ({ children }) => {
     return Math.floor(total * 100) / 100;
   };
 
+  // Delete a product by id (requires seller auth)
+  const deleteProduct = async (id) => {
+    try {
+      const { data } = await axios.delete(`${API_PATHS.PRODUCT.DELETE}/${id}`);
+      if (data.success) {
+        toast.success("Product deleted");
+        await fetchProducts(); // refresh list
+        return true;
+      } else {
+        toast.error(data.message || "Failed to delete");
+        return false;
+      }
+    } catch (error) {
+      toast.error(error.response?.data?.message || error.message);
+      return false;
+    }
+  };
 
-  
+  // in AppContextProvider (near deleteProduct)
+// updateProduct(id, payload, files, existingImages)
+const updateProduct = async (id, payload, files, existingImages = []) => {
+  try {
+    let res;
+    if ((files && files.length) || (existingImages && existingImages.length)) {
+      const form = new FormData();
+      // body fields
+      Object.entries(payload || {}).forEach(([k, v]) => {
+        if (Array.isArray(v)) v.forEach(val => form.append(k, val));
+        else form.append(k, v);
+      });
+
+      // keep list (objects with {url, publicId})
+      form.append("existingImages", JSON.stringify(existingImages));
+
+      // new files (0..4 - keep enforced in UI)
+      for (const f of (files || [])) form.append("images", f);
+
+      res = await axios.put(`${API_PATHS.PRODUCT.UPDATE}/${id}`, form, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+    } else {
+      // no images change — basic JSON update
+      res = await axios.put(`${API_PATHS.PRODUCT.UPDATE}/${id}`, payload);
+    }
+
+    if (res.data?.success) {
+      toast.success("Product updated");
+      await fetchProducts();
+      return true;
+    }
+    toast.error(res.data?.message || "Update failed");
+    return false;
+  } catch (error) {
+    toast.error(error.response?.data?.message || error.message);
+    return false;
+  }
+};
+
+
   // Sequential role detection: try user → then seller
   useEffect(() => {
     const initAuth = async () => {
@@ -118,6 +176,8 @@ export const AppContextProvider = ({ children }) => {
         }
       } catch {
         setIsSeller(false);
+      } finally {
+        setAuthLoading(false); // 🔧 MOVE HERE so it always runs after both checks
       }
     };
 
@@ -141,7 +201,7 @@ export const AppContextProvider = ({ children }) => {
     if (user) updateCart();
   }, [cartItems, user]);
 
- const mergeCarts = (serverCart = {}, localCart = {}) => {
+  const mergeCarts = (serverCart = {}, localCart = {}) => {
     const merged = { ...serverCart };
     for (const id in localCart) {
       merged[id] = (merged[id] || 0) + localCart[id];
@@ -176,7 +236,9 @@ export const AppContextProvider = ({ children }) => {
       isSyncingCartRef.current = true;
 
       // update the server cart
-      const updateResp = await axios.post(API_PATHS.CART.UPDATE, { cartItems: merged });
+      const updateResp = await axios.post(API_PATHS.CART.UPDATE, {
+        cartItems: merged,
+      });
 
       // prefer server-returned cartItems if provided
       const finalCart = updateResp?.data?.cartItems || merged;
@@ -226,6 +288,9 @@ export const AppContextProvider = ({ children }) => {
     fetchProducts,
     setCartItems,
     handlePostLogin,
+    deleteProduct,
+    authLoading,
+    updateProduct,
   };
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;

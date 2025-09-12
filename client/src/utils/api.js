@@ -19,6 +19,8 @@ export const API_PATHS = {
     LIST: "/api/product/list",
     BY_ID: "/api/product/by-id",
     CHANGE_STOCK: "/api/product/stock",
+    DELETE: "/api/product/delete",
+    UPDATE: "/api/product/update", 
   },
 
   CART: {
@@ -34,6 +36,8 @@ export const API_PATHS = {
     PLACE_COD: "/api/order/cod",
     PLACE_STRIPE: "/api/order/stripe",
     USER_ORDERS: "/api/order/user",
-    ALL_ORDERS: "/api/order/all", // seller view
+    ALL_ORDERS: "/api/order/all", 
+    TOGGLE_DELIVERED: (id) => `/api/order/${id}/delivered`,
+    DELETE: (id) => `/api/order/${id}`,
   },
 };
