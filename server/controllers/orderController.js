@@ -47,7 +47,7 @@ export const placeOrderCOD = async (req, res) => {
     }
 
     // Compute amount
-    let amount = 0;
+ let subtotal = 0;
     for (const it of items) {
       const product = await Product.findById(it.product);
       if (!product) {
@@ -56,11 +56,17 @@ export const placeOrderCOD = async (req, res) => {
           message: `Product not found: ${it.product}`,
         });
       }
-      amount += product.offerPrice * Number(it.quantity);
+      subtotal += Number(product.offerPrice) * Number(it.quantity);
     }
 
-    // Add 2% tax (rounded down; adjust if you prefer precise cents)
-    amount += Math.round(amount * 0.02);
+    // Delivery charge if subtotal < 100
+    const deliveryFee = subtotal > 0 && subtotal < 100 ? 50 : 0;
+
+    // 2% tax on subtotal (not on delivery)
+    const tax = Math.round(subtotal * 0.02);
+
+    // Final amount (₹)
+    const amount = subtotal + tax + deliveryFee;
 
     await Order.create({ userId, items, amount, address, paymentType: "COD" });
 
@@ -138,10 +144,15 @@ export const placeOrderStripe = async (req, res) => {
       subtotalPaise += unitPaise * qty;
     }
 
-    // Add 2% tax
-    const taxPaise = Math.round(subtotalPaise * 0.02);
-    const amountPaise = subtotalPaise + taxPaise;
+ // Delivery fee if subtotal < ₹100
+    const needsDeliveryFee = subtotalPaise > 0 && subtotalPaise < 100 * 100;
+    const deliveryFeePaise = needsDeliveryFee ? 50 * 100 : 0;
 
+    // 2% tax on subtotal (not on delivery)
+    const taxPaise = Math.round(subtotalPaise * 0.02);
+
+    // Final amount (paise → rupees for DB)
+    const amountPaise = subtotalPaise + taxPaise + deliveryFeePaise;
     const amountRupees = amountPaise / 100;
 
     const order = await Order.create({
