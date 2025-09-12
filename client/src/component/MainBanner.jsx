@@ -6,7 +6,7 @@ const MainBanner = () => {
   return (
     <div className=' relative'>
       <img src={assets.main_banner_bg} alt="banner" className='-z-2 w-full hidden md:block' />
-      <img src={assets.main_banner_bg_sm} alt="banner" className='w-full md:hidden block' />
+      <img src={assets.main_banner_bg_sm} alt="banner" className='-z-2 w-full md:hidden block' />
    
     <div className=' absolute inset-0 flex flex-col items-center md:items-start justify-end md:justify-center pb-24 md:pb-0 px-4 md:pl-18 lg:pl-24'>
 {/* <div className='hidden md:block absolute h-full w-full bg-primary/15 left-0 -z-0'></div> */}

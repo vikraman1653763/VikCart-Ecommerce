@@ -27,7 +27,7 @@ const App = () => {
       
       {isSellerPath ?null:<Navbar/>}
       {showUserLogin ?<Login/>:null}
-      <Toaster/>
+      <Toaster toastLimit={5}/>
 
       <div className={`${isSellerPath?"": "px-6 md:px-16 lg:px-24 xl:px-32"}`}>
         <Routes>
