@@ -1,14 +1,13 @@
 import express from "express";
 import authUser from "../middleware/authUser.js";
 import authSeller from "../middleware/authSeller.js";
-import { confirmStripeSession, getAllOrders, getUserOrders, placeOrderCOD, placeOrderStripe } from "../controllers/orderController.js";
+import { getAllOrders, getUserOrders, placeOrderCOD, placeOrderStripe } from "../controllers/orderController.js";
 
 const orderRouter = express.Router()
 
 orderRouter.post('/cod',authUser,placeOrderCOD)
 orderRouter.post('/stripe',authUser,placeOrderStripe)
-orderRouter.get("/confirm-stripe", authUser, confirmStripeSession);
 orderRouter.get('/user',authUser,getUserOrders)
-orderRouter.get('/cod',authSeller,getAllOrders)
+orderRouter.get('/all',authSeller,getAllOrders)
 
 export default orderRouter

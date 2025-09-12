@@ -9,7 +9,7 @@ const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
-  const { setShowUserLogin, setUser, axios, navigate } = useAppContext();
+  const { handlePostLogin,setShowUserLogin, setUser, axios, navigate } = useAppContext();
 
   const onSubmitHandler = async (event) => {
      event.preventDefault();
@@ -26,9 +26,10 @@ const Login = () => {
       const { data } = await axios.post(url, payload);
 
       if (data.success) {
-        navigate("/");
         setUser(data.user);
+        await handlePostLogin(data.user);
         setShowUserLogin(false);
+        navigate("/");
         toast.success(
           state === "login" ? "Login successful 🎉" : "Account created 🎉"
         );

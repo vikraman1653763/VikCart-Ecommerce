@@ -17,6 +17,7 @@ const Cart = () => {
     axios,
     user,
     setCartItems,
+    setShowUserLogin
   } = useAppContext();
 
   const [cartArray, setCartArray] = useState([]);
@@ -53,13 +54,17 @@ const Cart = () => {
   };
   const placeOrder = async () => {
     try {
+      if(!user){
+        setShowUserLogin(true) 
+        return toast.error("Please login to place an order")
+      }
       if (!selectedAddress) {
         return toast.error("Please select an address");
       }
       // COD  order
       if (paymentOption === "COD") {
         const { data } = await axios.post(API_PATHS.ORDER.PLACE_COD, {
-          userId: user._id,
+          
           items: cartArray.map((item) => ({
             product: item._id,
             quantity: item.quantity,

@@ -6,8 +6,9 @@ import User from "../models/User.js";
 // COD ORDER
 export const placeOrderCOD = async (req, res) => {
   try {
-    const { userId, items, address } = req.body;
 
+    const userId = req.userId;
+    const { items, address } = req.body;
     // Basic presence checks
     if (!userId) {
       return res
@@ -59,7 +60,7 @@ export const placeOrderCOD = async (req, res) => {
     }
 
     // Add 2% tax (rounded down; adjust if you prefer precise cents)
-    amount += Math.floor(amount * 0.02);
+    amount += Math.round(amount * 0.02);
 
     await Order.create({ userId, items, amount, address, paymentType: "COD" });
 

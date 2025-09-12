@@ -22,15 +22,23 @@ export const register = async (req, res) => {
     const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
       expiresIn: "7d",
     });
-    res.cookie("token", token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: process.env.NODE_ENV === "production" ? "none" : "strict",
-      maxAge: 7 * 24 * 60 * 60 * 1000,
-    });
-    return res
-      .json({ success: true, user: { email: user.email, name: user.name } })
-      .status(200);
+
+ res.cookie("token", token, {
+  httpOnly: true,
+  sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+  secure: process.env.NODE_ENV === "production", // in prod use HTTPS
+  maxAge: 7 * 24 * 60 * 60 * 1000,
+});
+
+    return res.status(200).json({
+  success: true,
+  user: {
+    _id: user._id,
+    name: user.name,
+    email: user.email,
+    cartItems: user.cartItems || {},
+  },})
+  
   } catch (error) {
     console.log(error.message);
     res.json({ success: false, message: error.message }).status(500);
