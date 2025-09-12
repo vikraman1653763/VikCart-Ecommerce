@@ -15,7 +15,7 @@ const port = process.env.PORT || 4000;
 
 await connectDB();
 // allow multiple origins
-const allowedOrigins = ["http://localhost:5173"];
+const allowedOrigins = ["http://localhost:5173","https://vik-cart-ecommerce.vercel.app"];
 
 app.post(
   "/stripe",
