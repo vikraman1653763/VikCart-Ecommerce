@@ -96,7 +96,7 @@ const ProductCard = ({ product }) => {
 
           <div className="text-primary" onClick={(e) => e.stopPropagation()}>
             {!inStock ? (
-              <span className="inline-flex items-center justify-center px-2 h-7 sm:h-8 rounded border border-gray-300 text-gray-400 text-[10px] sm:text-xs cursor-not-allowed">
+              <span className="inline-flex items-center justify-center text-center px-2 h-7 sm:h-8 rounded border border-gray-300 text-gray-400 text-[10px] sm:text-xs cursor-not-allowed">
                 Out of stock
               </span>
             ) : qtyInCart <= 0 ? (

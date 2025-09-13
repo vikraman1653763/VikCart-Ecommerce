@@ -11,7 +11,7 @@ export const AppContext = createContext();
 
 export const AppContextProvider = ({ children }) => {
   const currency = import.meta.env.VITE_CURRENCY;
-
+  const GOOGLE_API = import.meta.env.REACT_APP_GOOGLE_MAPS_API_KEY;
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
   const [isSeller, setIsSeller] = useState(false);
@@ -112,45 +112,47 @@ export const AppContextProvider = ({ children }) => {
   };
 
   // in AppContextProvider (near deleteProduct)
-// updateProduct(id, payload, files, existingImages)
-const updateProduct = async (id, payload, files, existingImages = []) => {
-  try {
-    let res;
-    if ((files && files.length) || (existingImages && existingImages.length)) {
-      const form = new FormData();
-      // body fields
-      Object.entries(payload || {}).forEach(([k, v]) => {
-        if (Array.isArray(v)) v.forEach(val => form.append(k, val));
-        else form.append(k, v);
-      });
+  // updateProduct(id, payload, files, existingImages)
+  const updateProduct = async (id, payload, files, existingImages = []) => {
+    try {
+      let res;
+      if (
+        (files && files.length) ||
+        (existingImages && existingImages.length)
+      ) {
+        const form = new FormData();
+        // body fields
+        Object.entries(payload || {}).forEach(([k, v]) => {
+          if (Array.isArray(v)) v.forEach((val) => form.append(k, val));
+          else form.append(k, v);
+        });
 
-      // keep list (objects with {url, publicId})
-      form.append("existingImages", JSON.stringify(existingImages));
+        // keep list (objects with {url, publicId})
+        form.append("existingImages", JSON.stringify(existingImages));
 
-      // new files (0..4 - keep enforced in UI)
-      for (const f of (files || [])) form.append("images", f);
+        // new files (0..4 - keep enforced in UI)
+        for (const f of files || []) form.append("images", f);
 
-      res = await axios.put(`${API_PATHS.PRODUCT.UPDATE}/${id}`, form, {
-        headers: { "Content-Type": "multipart/form-data" },
-      });
-    } else {
-      // no images change — basic JSON update
-      res = await axios.put(`${API_PATHS.PRODUCT.UPDATE}/${id}`, payload);
+        res = await axios.put(`${API_PATHS.PRODUCT.UPDATE}/${id}`, form, {
+          headers: { "Content-Type": "multipart/form-data" },
+        });
+      } else {
+        // no images change — basic JSON update
+        res = await axios.put(`${API_PATHS.PRODUCT.UPDATE}/${id}`, payload);
+      }
+
+      if (res.data?.success) {
+        toast.success("Product updated");
+        await fetchProducts();
+        return true;
+      }
+      toast.error(res.data?.message || "Update failed");
+      return false;
+    } catch (error) {
+      toast.error(error.response?.data?.message || error.message);
+      return false;
     }
-
-    if (res.data?.success) {
-      toast.success("Product updated");
-      await fetchProducts();
-      return true;
-    }
-    toast.error(res.data?.message || "Update failed");
-    return false;
-  } catch (error) {
-    toast.error(error.response?.data?.message || error.message);
-    return false;
-  }
-};
-
+  };
 
   // Sequential role detection: try user → then seller
   useEffect(() => {
@@ -291,6 +293,7 @@ const updateProduct = async (id, payload, files, existingImages = []) => {
     deleteProduct,
     authLoading,
     updateProduct,
+    GOOGLE_API
   };
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;

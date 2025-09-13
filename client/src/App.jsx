@@ -19,6 +19,7 @@ import ProductList from "./pages/seller/ProductList";
 import Orders from "./pages/seller/Orders";
 import Loading from "./component/Loading";
 import Contact from "./pages/Contact";
+import 'leaflet/dist/leaflet.css';
 
 const App = () => {
   const isSellerPath = useLocation().pathname.includes("seller")
