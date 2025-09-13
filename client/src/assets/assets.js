@@ -69,6 +69,7 @@ import vanilla_muffins_image from "./vanilla_muffins_image.png";
 import quinoa_image from "./quinoa_image.png";
 import brown_rice_image from "./brown_rice_image.png";
 import barley_image from "./barley_image.png";
+import contact_banner from "./contact_banner.png";
 
 import { FaTruckArrowRight } from "react-icons/fa6";
 import { SiCodefresh } from "react-icons/si";
@@ -104,6 +105,7 @@ export const assets = {
   bottom_banner_image_sm,
   add_address_iamge,
   box_icon,
+  contact_banner
 };
 
 export const categories = [
