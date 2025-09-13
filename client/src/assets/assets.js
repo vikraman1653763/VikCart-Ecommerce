@@ -11,7 +11,7 @@ import refresh_icon from "./refresh_icon.svg";
 import product_list_icon from "./product_list_icon.svg";
 import order_icon from "./order_icon.svg";
 import upload_area from "./upload_area.png";
-import profile_icon from "./profile_icon.png";
+import profile_icon from "./profile_icon.jpg";
 import menu_icon from "./menu_icon.svg";
 import delivery_truck_icon from "./delivery_truck_icon.svg";
 import leaf_icon from "./leaf_icon.svg";
