@@ -13,8 +13,7 @@ const DefaultIcon = L.icon({
 });
 L.Marker.prototype.options.icon = DefaultIcon;
 
-// Simple Nominatim reverse geocode (OpenStreetMap, free)
-// NOTE: Be gentle with requests. Consider debouncing if you add more calls.
+
 async function reverseGeocode(lat, lon) {
   const url = `https://nominatim.openstreetmap.org/reverse?format=json&accept-language=en&lat=${lat}&lon=${lon}&zoom=18&addressdetails=1`;
   const resp = await fetch(url, { headers: { Accept: "application/json" } });
